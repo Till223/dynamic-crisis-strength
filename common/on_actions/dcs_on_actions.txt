@@ -1,0 +1,11 @@
+on_country_created = {
+    events = {
+        dcs.100
+    }
+}
+
+on_game_start_country = {
+    events = {
+        dcs.400
+    }
+}

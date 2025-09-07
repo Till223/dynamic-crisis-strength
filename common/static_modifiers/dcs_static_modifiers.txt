@@ -1,0 +1,6 @@
+dcs_crisis_strength_boost = {
+	ship_weapon_damage = 1.0
+	ship_hull_mult = 1.0
+	ship_armor_mult = 1.0
+	ship_shield_mult = 1.0
+}

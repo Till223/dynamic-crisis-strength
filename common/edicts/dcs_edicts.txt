@@ -1,0 +1,15 @@
+dcs_edict_menu = {
+	length = 0
+	icon = "GFX_edict_type_policy"
+	potential = {
+		is_ai = no
+	}
+	effect = {
+		country_event = {
+			id = dcs.400
+		}
+	}
+	ai_weight = {
+		weight = 0
+	}
+}
