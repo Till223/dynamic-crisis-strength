@@ -6,14 +6,9 @@ dcs_calculate_crisis_strength = {
     set_variable = { which = max_strength_5 value = -1 }
 
     every_playable_country = {
-        set_variable = { which = strength value = 0 }
-        every_owned_fleet = {
-            limit = {
-                is_mobile = yes
-                is_civilian = no
-            }
-            prev = { change_variable = { which = strength value = prev.trigger:fleet_power} }
-            #log = "strength: \\[prev.strength]"
+        export_trigger_value_to_variable = {
+            trigger = fleet_power
+            variable = strength
         }
         #log = "Empire: \\[This.GetName]"
         #log = "Fleet Strength: \\[This.strength]"
@@ -46,9 +41,10 @@ dcs_calculate_crisis_strength = {
     event_target:strongest_empire_4 = { log = "4th Strongest Empire: \\[This.GetName] with Fleet Power: \\[prev.max_strength_4]" }
     event_target:strongest_empire_5 = { log = "5th Strongest Empire: \\[This.GetName] with Fleet Power: \\[prev.max_strength_5]" }
 
-    multiply_variable = { which = max_strength_2 value = 0.8 }
-    multiply_variable = { which = max_strength_3 value = 0.6 }
-    multiply_variable = { which = max_strength_4 value = 0.4 }
+	multiply_variable = { which = max_strength_1 value = 2 }
+    multiply_variable = { which = max_strength_2 value = 1 }
+    multiply_variable = { which = max_strength_3 value = 0.5 }
+    multiply_variable = { which = max_strength_4 value = 0.3 }
     multiply_variable = { which = max_strength_5 value = 0.2 }
 
     event_target:strongest_empire_2 = { log = "2nd Strongest Empire: \\[This.GetName] with Divided Power: \\[prev.max_strength_2]" }
@@ -72,7 +68,7 @@ dcs_calculate_crisis_strength = {
     clear_variable = max_strength_4
     clear_variable = max_strength_5
 
-    divide_variable = { which = dcs_universe_strength value = 3 }
+    divide_variable = { which = dcs_universe_strength value = 4 }
     round_variable = dcs_universe_strength
 
     log = "Universe Strength: \\[this.dcs_universe_strength]"
@@ -92,5 +88,135 @@ dcs_calculate_crisis_strength = {
     if = {
         limit = { check_variable = { which = dcs_crisis_multiplier value < 0 } }
         set_variable = { which = dcs_crisis_multiplier value = 0 }
+    }
+}
+
+dcs_apply_crisis_strength = {
+    #remove old modifier if it exists
+    if = {
+        limit = { has_modifier = dcs_crisis_strength_boost }
+        remove_modifier = dcs_crisis_strength_boost
+    }
+    #prepare vanilla crisis strength negation or set to 0 if negation disabled
+    if = {
+        #NOT because dcs_not_negate_crisis_strength has an inverted meaning (false means true)
+        limit = { event_target:global_event_country = { NOT = { has_country_flag = dcs_not_negate_crisis_strength } } }
+        set_variable = { which = dcs_subtract_vanilla_crisis value = dcs_detected_vanilla_crisis }
+    } else = {
+        set_variable = { which = dcs_subtract_vanilla_crisis value = 0 }
+    }
+
+    if = {
+        #Custom modifier
+        limit = { event_target:global_event_country = { has_country_flag = dcs_custom_crisis_multiplier_flag } }
+        set_variable = { which = dcs_applied_multiplier value = event_target:global_event_country.dcs_custom_crisis_multiplier }
+        #subtract determined vanilla crisis strength
+        subtract_variable = { which = dcs_applied_multiplier value = dcs_subtract_vanilla_crisis }
+        log = "Application of Custom Crisis Strength"
+    } else = {
+        set_variable = { which = dcs_applied_multiplier value = dcs_crisis_multiplier }
+        multiply_variable = { which = dcs_applied_multiplier value = event_target:global_event_country.dcs_calculation_multiplier }
+        #subtract determined vanilla crisis strength
+        subtract_variable = { which = dcs_applied_multiplier value = dcs_subtract_vanilla_crisis }
+        # add static offset
+        change_variable = { which = dcs_applied_multiplier value = event_target:global_event_country.dcs_static_offset }
+        #ensure that applied multiplier is not negative. If the vanilla crisis setting is higher than the calculated,
+        # we end up with the vanilla crisis strength.
+        if = {
+            limit = { check_variable = { which = dcs_applied_multiplier value < 0 } }
+            set_variable = { which = dcs_applied_multiplier value = 0 }
+        }
+        log = "Application of Calculated Crisis Strength"
+    }
+
+    #apply new modifier
+    add_modifier = { modifier = dcs_crisis_strength_boost days = -1 mult = dcs_applied_multiplier }
+    #set equivalent vanilla crisis strength for printing in event dialog
+    set_variable = { which = dcs_equivalent_vanilla_crisis value = dcs_applied_multiplier }
+    change_variable = { which = dcs_equivalent_vanilla_crisis value = dcs_detected_vanilla_crisis }
+    log = "Applied Crisis Strength Multiplier: \\[this.dcs_applied_multiplier] to empire \\[this.GetName]"
+}
+
+#FROM = other crisis empire from which we can copy variables
+dcs_copy_variables_from = {
+    $FROM$ = { save_event_target_as = FROM }
+    log = "Copying Varibales From: \\[event_target:FROM.GetName]"
+    #get vanilla crisis strength negation from head crisis
+    set_variable = { which = dcs_detected_vanilla_crisis value = event_target:FROM.dcs_detected_vanilla_crisis }
+    set_variable = { which = dcs_crisis_multiplier value = event_target:FROM.dcs_crisis_multiplier }
+}
+
+dcs_ensure_global_initialization = {
+    event_target:global_event_country = {
+        if = {
+            limit = { not = { is_variable_set = dcs_custom_crisis_multiplier } }
+            set_variable = { which = dcs_custom_crisis_multiplier value = 1 }
+        }
+        if = {
+            limit = { not = { is_variable_set = dcs_calculation_multiplier } }
+            set_variable = { which = dcs_calculation_multiplier value = 1 }
+        }
+        if = {
+            limit = { not = { is_variable_set = dcs_detected_vanilla_crisis } }
+            set_variable = { which = dcs_detected_vanilla_crisis value = 0 }
+        }
+        if = {
+            limit = { not = { is_variable_set = dcs_detected_vanilla_crisis_in_calculation } }
+            set_variable = { which = dcs_detected_vanilla_crisis_in_calculation value = dcs_detected_vanilla_crisis }
+        }
+        if = {
+            limit = { not = { is_variable_set = dcs_static_offset } }
+            set_variable = { which = dcs_static_offset value = 0 }
+        }
+    }
+}
+
+dcs_detect_vanilla_crisis_strength = {
+    #calculate vanilla crisis strength through modifier extraction
+    if = {
+        limit = {
+            not = { is_variable_set = dcs_detected_vanilla_crisis }
+        }
+        #determine current modifier strength
+        export_modifier_to_variable = {
+            variable = dcs_damage_readout
+            modifier = ship_weapon_damage
+        }
+        export_modifier_to_variable = {
+            variable = dcs_hull_readout
+            modifier = ship_hull_mult
+        }
+        export_modifier_to_variable = {
+            variable = dcs_armor_readout
+            modifier = ship_armor_mult
+        }
+        export_modifier_to_variable = {
+            variable = dcs_shield_readout
+            modifier = ship_shield_mult
+        }
+        log = "Current Ship Weapon Damage Modifier: \\[this.dcs_damage_readout]"
+        log = "Current Ship Hull Modifier: \\[this.dcs_hull_readout]"
+        log = "Current Ship Armor Modifier: \\[this.dcs_armor_readout]"
+        log = "Current Ship Shield Modifier: \\[this.dcs_shield_readout]"
+        #set lowest value as negation strength. Some values might have buffs from other sources, hopefully not all.
+        set_variable = { which = dcs_detected_vanilla_crisis value = dcs_damage_readout} 
+        if = {
+            limit = { check_variable = { which = dcs_hull_readout value < dcs_detected_vanilla_crisis } }
+            set_variable = { which = dcs_detected_vanilla_crisis value = dcs_hull_readout } 
+        }
+        if = {
+            limit = { check_variable = { which = dcs_armor_readout value < dcs_detected_vanilla_crisis } }
+            set_variable = { which = dcs_detected_vanilla_crisis value = dcs_armor_readout } 
+        }
+        if = {
+            limit = { check_variable = { which = dcs_shield_readout value < dcs_detected_vanilla_crisis } }
+            set_variable = { which = dcs_detected_vanilla_crisis value = dcs_shield_readout } 
+        }
+        #log current modifier strength
+        log = "Set Negation Strength to: \\[this.dcs_detected_vanilla_crisis]"
+        clear_variable = dcs_damage_readout
+        clear_variable = dcs_hull_readout
+        clear_variable = dcs_armor_readout
+        clear_variable = dcs_shield_readout
     }
 }

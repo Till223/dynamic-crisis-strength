@@ -4,6 +4,7 @@ country_event = {
     id = dcs.1
     hide_window = yes
     fire_only_once = yes
+    mean_time_to_happen = { days = 1 }
     trigger = { not = { has_global_flag = dcs_mod_initialized }}
     immediate = {
         every_country = {
@@ -26,81 +27,37 @@ country_event = {
             is_country_type = ai_empire           			# Contingency
             is_country_type = swarm           				# Prethoryn Scourge
             is_country_type = extradimensional              # Unbidden
-            is_country_type = feral_prethoryn_infighting    # Prethoryn Scourge
-			is_country_type = feral_prethoryn               # Prethoryn Scourge
-            is_country_type = extradimensional_2            # Unbidden: Abberant
-            is_country_type = extradimensional_3            # Unbidden: Vehement
+            is_country_type = synth_queen_storm             # Cetana
+            #has_country_flag = end_game_crisis
         }
     }
 
     immediate = {
         if = {
-            limit = {
-                OR = {         
-                    is_country_type = ai_empire           			# Contingency
-                    is_country_type = swarm           				# Prethoryn Scourge
-                    is_country_type = extradimensional              # Unbidden 
+            limit = { 
+                NOR = {
+                    is_variable_set = dcs_detected_vanilla_crisis
+                    is_variable_set = dcs_crisis_multiplier
                 }
             }
+            log = "crisis event triggered for \\[This.GetName]"
             #calculate vanilla crisis strength through modifier extraction
             if = {
-                limit = {
-                    not = { is_variable_set = dcs_detected_vanilla_crisis }
-                }
-                #determine current modifier strength
-                export_modifier_to_variable = {
-                    variable = dcs_damage_readout
-                    modifier = ship_weapon_damage
-                }
-                export_modifier_to_variable = {
-                    variable = dcs_hull_readout
-                    modifier = ship_hull_mult
-                }
-                export_modifier_to_variable = {
-                    variable = dcs_armor_readout
-                    modifier = ship_armor_mult
-                }
-                export_modifier_to_variable = {
-                    variable = dcs_shield_readout
-                    modifier = ship_shield_mult
-                }
-                log = "Current Ship Weapon Damage Modifier: [this.dcs_damage_readout]"
-                log = "Current Ship Hull Modifier: [this.dcs_hull_readout]"
-                log = "Current Ship Armor Modifier: [this.dcs_armor_readout]"
-                log = "Current Ship Shield Modifier: [this.dcs_shield_readout]"
-                #set lowest value as negation strength. Some values might have buffs from other sources, hopefully not all.
-                set_variable = { which = dcs_detected_vanilla_crisis value = dcs_damage_readout} 
-                if = {
-                    limit = { check_variable = { which = dcs_hull_readout value < dcs_detected_vanilla_crisis } }
-                    set_variable = { which = dcs_detected_vanilla_crisis value = dcs_hull_readout } 
-                }
-                if = {
-                    limit = { check_variable = { which = dcs_armor_readout value < dcs_detected_vanilla_crisis } }
-                    set_variable = { which = dcs_detected_vanilla_crisis value = dcs_armor_readout } 
-                }
-                if = {
-                    limit = { check_variable = { which = dcs_shield_readout value < dcs_detected_vanilla_crisis } }
-                    set_variable = { which = dcs_detected_vanilla_crisis value = dcs_shield_readout } 
-                }
-                log = "Set Negation Strength to: [this.dcs_detected_vanilla_crisis]"
-                clear_variable = dcs_damage_readout
-                clear_variable = dcs_hull_readout
-                clear_variable = dcs_armor_readout
-                clear_variable = dcs_shield_readout
-                #log current modifier strength
+                limit = { not = { is_variable_set = dcs_detected_vanilla_crisis } }
+                dcs_detect_vanilla_crisis_strength = yes
+                log = "crisis event triggered for \\[This.GetName]"
             }
-            event_target:global_event_country = {
+            if = {
+                limit = { not = { is_variable_set = dcs_crisis_multiplier } }
                 #calculate galaxy strength and proportional dynamic crisis strength
-                dcs_calculate_crisis_strength = yes
-                #save vanilla crisis strength readout to global. This global value is used by subcrisis like Aberrant and Vehement
-                set_variable = { which = dcs_detected_vanilla_crisis value = prev.dcs_detected_vanilla_crisis }
-                
-                every_country = {
-                    limit = { is_ai = no }
-                    country_event = {
-                        id = dcs.300
-                        days = 1
-                    }
+                dcs_calculate_crisis_strength = yes 
+            } 
+            #notify player empires
+            every_country = {
+                limit = { is_ai = no }
+                country_event = {
+                    id = dcs.300
+                    days = 1
                 }
             }
             save_global_event_target_as = last_crisis_empire
@@ -116,81 +73,59 @@ country_event = {
     trigger = {
         OR = {
             is_country_type = ai_empire           			# Contingency
+            is_country_type = cybrex_empire       		    # Anti Contingency
             is_country_type = swarm           				# Prethoryn Scourge
-            is_country_type = extradimensional              # Unbidden
             is_country_type = feral_prethoryn_infighting    # Prethoryn Scourge
 			is_country_type = feral_prethoryn               # Prethoryn Scourge
+            is_country_type = sentinels                     # Anti Prethoryn Scourge
+            is_country_type = extradimensional              # Unbidden
             is_country_type = extradimensional_2            # Unbidden: Abberant
             is_country_type = extradimensional_3            # Unbidden: Vehement
+            is_country_type = synth_queen_storm             # Cetana
+            is_country_type = awakened_synth_queen          # Cetana awakend
+            is_country_type = synth_queen                   # Cetana
+            #has_country_flag = end_game_crisis              # Other modded crises
         }
     }
 
     immediate = {
-        #remove old modifier if it exists
+        dcs_ensure_global_initialization = yes
         if = {
-            limit = { has_modifier = dcs_crisis_strength_boost }
-            remove_modifier = dcs_crisis_strength_boost
-        }
-        #get vanilla crisis strength negation from global if this is the first run
-        if = {
-            limit = { not = { is_variable_set = dcs_detected_vanilla_crisis } }
-            set_variable = { which = dcs_detected_vanilla_crisis value = event_target:global_event_country.dcs_detected_vanilla_crisis }
-        }
-        #prepare vanilla crisis strength negation or set to 0 if negation disabled
-        if = {
-            limit = { event_target:global_event_country = { not = { has_country_flag = dcs_not_negate_crisis_strength } } }
-            set_variable = { which = dcs_subtract_vanilla_crisis value = dcs_detected_vanilla_crisis }
-        } else = {
-            set_variable = { which = dcs_subtract_vanilla_crisis value = 0 }
-        }
-
-        event_target:global_event_country = {
+            limit = { not =  { is_variable_set = dcs_crisis_multiplier } }
             if = {
-                #prepare difficulty multiplier in case it was not set for some reason
-                limit = { not = { is_variable_set = dcs_calculation_multiplier } }
-                set_variable = { which = dcs_calculation_multiplier value = 1 }
-            }
-            if = {
-                #prepare static offset in case it was not set for some reason
-                limit = { not = { is_variable_set = dcs_static_offset } }
-                set_variable = { which = dcs_static_offset value = 0 }
-            }
-            if = {
-                #Custom modifier
-                limit = { has_country_flag = dcs_custom_crisis_multiplier_flag }
-                set_variable = { which = dcs_applied_multiplier value = dcs_custom_crisis_multiplier }
-                #subtract determined vanilla crisis strength
-                subtract_variable = { which = dcs_applied_multiplier value = prev.dcs_subtract_vanilla_crisis }
-                log = "Application of Custom Crisis Strength"
-            } else = {
-                if = {
-                    #First application of calculated modifier
-                    limit = { prev = { not = { is_variable_set = dcs_last_crisis_multiplier } } }
-                    prev = { set_variable = { which = dcs_last_crisis_multiplier value = prev.dcs_crisis_multiplier } }
-                    log = "First Application of Calculated Crisis Strength"
+                limit = { 
+                        is_country_type = cybrex_empire
+                } 
+                random_country = {
+                    limit = { is_country_type = ai_empire }
+                    prev = { dcs_copy_variables_from = { FROM = prev } }
                 }
-                set_variable = { which = dcs_applied_multiplier value = prev.dcs_last_crisis_multiplier }
-                multiply_variable = { which = dcs_applied_multiplier value = dcs_calculation_multiplier }
-                #subtract determined vanilla crisis strength
-                subtract_variable = { which = dcs_applied_multiplier value = prev.dcs_subtract_vanilla_crisis }
-                # add static offset
-                change_variable = { which = dcs_applied_multiplier value = dcs_static_offset }
-                #ensure that applied multiplier is not negative. If the vanilla crisis setting is higher than the calculated,
-                # we end up with the vanilla crisis strength.
-                if = {
-                    limit = { check_variable = { which = dcs_applied_multiplier value < 0 } }
-                    set_variable = { which = dcs_applied_multiplier value = 0 }
+            } else_if = {
+                limit = { 
+                        OR = {
+                            is_country_type = extradimensional_2
+                            is_country_type = extradimensional_3
+                        }
+                } 
+                random_country = {
+                    limit = { is_country_type = extradimensional }
+                    prev = { dcs_copy_variables_from = { FROM = prev } }
                 }
-                log = "Application of Calculated Crisis Strength"
+            } else_if = {
+                limit = { 
+                        OR = {
+                            is_country_type = feral_prethoryn_infighting
+                            is_country_type = feral_prethoryn
+                            is_country_type = sentinels
+                        }
+                }
+                random_country = {
+                    limit = { is_country_type = swarm }
+                    prev = { dcs_copy_variables_from = { FROM = prev } }
+                }
             }
-
-            #apply new modifier
-            prev = { add_modifier = { modifier = dcs_crisis_strength_boost days = -1 mult = prev.dcs_applied_multiplier } }
-            #set equivalent vanilla crisis strength for printing in event dialog
-            set_variable = { which = dcs_equivalent_vanilla_crisis value = dcs_applied_multiplier }
-            change_variable = { which = dcs_equivalent_vanilla_crisis value = prev.dcs_detected_vanilla_crisis }
-            log = "Applied Crisis Strength Multiplier: [this.dcs_applied_multiplier]"
         }
+        dcs_apply_crisis_strength = yes
     }
 }
 
@@ -216,6 +151,7 @@ country_event = {
     trigger = {
         is_ai = no
     }
+    picture = GFX_evt_fleet_evil
 	desc =  {
         text = dcs_menu.desc
         trigger = { 
@@ -255,44 +191,12 @@ country_event = {
         }
     }
 
-    picture = GFX_evt_fleet_evil
-
-    immediate = {
-        event_target:global_event_country = {
-            if = {
-                limit = { not = { is_variable_set = dcs_crisis_multiplier } }
-                dcs_calculate_crisis_strength = yes
-            }
-            if = {
-                limit = { not = { is_variable_set = dcs_custom_crisis_multiplier } }
-                set_variable = { which = dcs_custom_crisis_multiplier value = 1 }
-            }
-            if = {
-                limit = { not = { is_variable_set = dcs_calculation_multiplier } }
-                set_variable = { which = dcs_calculation_multiplier value = 1 }
-            }
-            if = {
-                limit = { not = { is_variable_set = dcs_detected_vanilla_crisis } }
-                set_variable = { which = dcs_detected_vanilla_crisis value = 0 }
-            }
-            if = {
-                limit = { not = { is_variable_set = dcs_detected_vanilla_crisis_in_calculation } }
-                set_variable = { which = dcs_detected_vanilla_crisis_in_calculation value = dcs_detected_vanilla_crisis }
-            }
-            if = {
-                limit = { not = { is_variable_set = dcs_static_offset } }
-                set_variable = { which = dcs_static_offset value = 0 }
-            }
-        }
-    }
-
     option = {
         trigger = { event_target:global_event_country = { not = { has_country_flag = dcs_not_negate_crisis_strength } } }
         name = dcs_menu.dcs_not_negate_crisis_strength_disable
         hidden_effect = {
             event_target:global_event_country = { 
                 set_country_flag = dcs_not_negate_crisis_strength 
-                set_variable = { which = dcs_detected_vanilla_crisis_in_calculation value = 0 }
             }
             every_country = {
                 country_event = {
@@ -309,7 +213,6 @@ country_event = {
         hidden_effect = {
             event_target:global_event_country = { 
                 remove_country_flag = dcs_not_negate_crisis_strength 
-                set_variable = { which = dcs_detected_vanilla_crisis_in_calculation value = dcs_detected_vanilla_crisis }
             }
             every_country = {
                 country_event = {
