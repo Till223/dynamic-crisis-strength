@@ -29,6 +29,10 @@ country_event = {
             is_country_type = extradimensional              # Unbidden
             is_country_type = synth_queen_storm             # Cetana
             #has_country_flag = end_game_crisis
+            AND = {
+                is_midgame_crisis = yes
+                is_midgame_crisis_active = yes
+            }
         }
     }
 
@@ -49,8 +53,7 @@ country_event = {
             }
             if = {
                 limit = { not = { is_variable_set = dcs_crisis_multiplier } }
-                #calculate galaxy strength and proportional dynamic crisis strength
-                dcs_calculate_crisis_strength = yes 
+                dcs_calculate_crisis_strength = yes
             } 
             #notify player empires
             every_country = {
@@ -85,6 +88,10 @@ country_event = {
             is_country_type = awakened_synth_queen          # Cetana awakend
             is_country_type = synth_queen                   # Cetana
             #has_country_flag = end_game_crisis              # Other modded crises
+            AND = {
+                is_midgame_crisis = yes
+                is_midgame_crisis_active = yes
+            }
         }
     }
 
@@ -144,311 +151,66 @@ country_event = {
     }
 }
 
+#voidworms
 country_event = {
-    id = dcs.400
-    title = dcs_menu.title
-	is_triggered_only = yes
+    id = dcs.501
+    hide_window = yes
+    mean_time_to_happen = { days = 1 }
+    fire_only_once = yes
     trigger = {
-        is_ai = no
-    }
-    picture = GFX_evt_fleet_evil
-	desc =  {
-        text = dcs_menu.desc
-        trigger = { 
-            event_target:global_event_country = { 
-                NOT = { has_country_flag = dcs_custom_crisis_multiplier_flag  }
-                #NOT, because this flags meaning is reversed
-                NOT = { has_country_flag = dcs_not_negate_crisis_strength } 
-            } 
-        }
-    }
-    desc =  {
-        text = dcs_menu.desc.no_vanilla_negation
-        trigger = { 
-            event_target:global_event_country = { 
-                NOT = { has_country_flag = dcs_custom_crisis_multiplier_flag } 
-                has_country_flag = dcs_not_negate_crisis_strength 
-            } 
-        }
-    }
-    desc =  {
-        text = dcs_menu.desc_custom_modifier
-        trigger = { 
-            event_target:global_event_country = { 
-                has_country_flag = dcs_custom_crisis_multiplier_flag 
-                #NOT, because this flags meaning is reversed
-                NOT = { has_country_flag = dcs_not_negate_crisis_strength }
-            } 
-        }
-    }
-    desc =  {
-        text = dcs_menu.desc_custom_modifier.no_vanilla_negation
-        trigger = { 
-            event_target:global_event_country = { 
-                has_country_flag = dcs_custom_crisis_multiplier_flag 
-                has_country_flag = dcs_not_negate_crisis_strength
-            } 
-        }
+        is_country_type = voidworms_crisis
+        has_dcs_affect_mid_game_crisis = yes
+        is_voidworms_crisis_active = yes
+        NOT = { has_global_flag = dcs_voidworms_buffed }
     }
 
-    option = {
-        trigger = { event_target:global_event_country = { not = { has_country_flag = dcs_not_negate_crisis_strength } } }
-        name = dcs_menu.dcs_not_negate_crisis_strength_disable
-        hidden_effect = {
-            event_target:global_event_country = { 
-                set_country_flag = dcs_not_negate_crisis_strength 
-            }
-            every_country = {
-                country_event = {
-                    id = dcs.101
-                }
-            }
-            country_event = { id = dcs.400 }
-        }
-    }
-
-    option = {
-        trigger = { event_target:global_event_country = { has_country_flag = dcs_not_negate_crisis_strength } }
-        name = dcs_menu.dcs_not_negate_crisis_strength_enable
-        hidden_effect = {
-            event_target:global_event_country = { 
-                remove_country_flag = dcs_not_negate_crisis_strength 
-            }
-            every_country = {
-                country_event = {
-                    id = dcs.101
-                }
-            }
-            country_event = { id = dcs.400 }
-        }
-    }
-
-    option = {
-        trigger = { event_target:global_event_country = { not = { has_country_flag = dcs_custom_crisis_multiplier_flag } } }
-        name = dcs_menu.enable_custom_modifier
-        hidden_effect = {
-            event_target:global_event_country = { set_country_flag = dcs_custom_crisis_multiplier_flag }
-            every_country = {
-                country_event = {
-                    id = dcs.101
-                }
-            }
-            country_event = { id = dcs.400 }
-        }
-    }
-
-    option = {
-        trigger = { event_target:global_event_country = { has_country_flag = dcs_custom_crisis_multiplier_flag } }
-        name = dcs_menu.disable_custom_modifier
-        hidden_effect = {
-            event_target:global_event_country = { remove_country_flag = dcs_custom_crisis_multiplier_flag }
-            every_country = {
-                country_event = {
-                    id = dcs.101
-                }
-            }
-            country_event = { id = dcs.400 }
-        }
-    }
-
-    option = {
-        trigger = { event_target:global_event_country = { not = { has_country_flag = dcs_custom_crisis_multiplier_flag } } }
-        name = dcs_menu.increase_calculation_multiplier_5
-        custom_tooltip = dcs_menu.increase_calculation_multiplier.tooltip
-        hidden_effect = {
-            event_target:global_event_country = { 
-                change_variable = { which = dcs_calculation_multiplier value = 0.5 }
-            }
-            every_country = {
-                country_event = {
-                    id = dcs.101
-                }
-            }
-            country_event = { id = dcs.400 }
-        }
-    }
-
-    option = {
-        trigger = { event_target:global_event_country = { not = { has_country_flag = dcs_custom_crisis_multiplier_flag } } }
-        name = dcs_menu.increase_calculation_multiplier
-        custom_tooltip = dcs_menu.increase_calculation_multiplier.tooltip
-        hidden_effect = {
-            event_target:global_event_country = { 
-                change_variable = { which = dcs_calculation_multiplier value = 0.1 }
-            }
-            every_country = {
-                country_event = {
-                    id = dcs.101
-                }
-            }
-            country_event = { id = dcs.400 }
-        }
-    }
-
-    option = {
-        trigger = { event_target:global_event_country = { not = { has_country_flag = dcs_custom_crisis_multiplier_flag } } }
-        name = dcs_menu.decrease_calculation_multiplier
-        custom_tooltip = dcs_menu.decrease_calculation_multiplier.tooltip
-        hidden_effect = {
-            event_target:global_event_country = { 
-                subtract_variable = { which = dcs_calculation_multiplier value = 0.1 }
-            }
-            every_country = {
-                country_event = {
-                    id = dcs.101
-                }
-            }
-            country_event = { id = dcs.400 }
-        }
-    }
-
-    option = {
-        trigger = { event_target:global_event_country = { not = { has_country_flag = dcs_custom_crisis_multiplier_flag } } }
-        name = dcs_menu.decrease_calculation_multiplier_5
-        custom_tooltip = dcs_menu.decrease_calculation_multiplier.tooltip
-        hidden_effect = {
-            event_target:global_event_country = { 
-                subtract_variable = { which = dcs_calculation_multiplier value = 0.5 }
-            }
-            every_country = {
-                country_event = {
-                    id = dcs.101
-                }
-            }
-            country_event = { id = dcs.400 }
-        }
-    }
-
-    option = {
-        trigger = { event_target:global_event_country = { not = { has_country_flag = dcs_custom_crisis_multiplier_flag } } }
-        name = dcs_menu.increase_static_offset_1
-        hidden_effect = {
-            event_target:global_event_country = { 
-                change_variable = { which = dcs_static_offset value = 1 }
-            }
-            every_country = {
-                country_event = {
-                    id = dcs.101
-                }
-            }
-            country_event = { id = dcs.400 }
-        }
-    }
-
-    option = {
-        trigger = { event_target:global_event_country = { not = { has_country_flag = dcs_custom_crisis_multiplier_flag } } }
-        name = dcs_menu.decrease_static_offset_1
-        hidden_effect = {
-            event_target:global_event_country = { 
-                subtract_variable = { which = dcs_static_offset value = 1 }
-            }
-            every_country = {
-                country_event = {
-                    id = dcs.101
-                }
-            }
-            country_event = { id = dcs.400 }
-        }
-    }
-
-    option = {
-        trigger = { event_target:global_event_country = { has_country_flag = dcs_custom_crisis_multiplier_flag } }
-        name = dcs_menu.increase_custom_modifier_5
-        hidden_effect = {
-            event_target:global_event_country = { 
-                change_variable = { which = dcs_custom_crisis_multiplier value = 5 } 
-            }
-            every_country = {
-                country_event = {
-                    id = dcs.101
-                }
-            }
-            country_event = { id = dcs.400 }
-        }
-    }
-
-option = {
-    trigger = { event_target:global_event_country = { has_country_flag = dcs_custom_crisis_multiplier_flag } }
-    name = dcs_menu.increase_custom_modifier_0.1
-    hidden_effect = {
-        event_target:global_event_country = { 
-            change_variable = { which = dcs_custom_crisis_multiplier value = 0.1 } 
-        }
-        every_country = {
-            country_event = {
-                id = dcs.101
-            }
-        }
-        country_event = { id = dcs.400 }
+    immediate = {
+        set_global_flag = dcs_voidworms_buffed
+        set_variable = { which = dcs_crisis_fleet_power_input value = 50000 }
+        country_event = { id = dcs.100 }
+        country_event = { id = dcs.101 }
     }
 }
 
-    option = {
-    trigger = { event_target:global_event_country = { has_country_flag = dcs_custom_crisis_multiplier_flag } }
-    name = dcs_menu.increase_custom_modifier_0.1
-    hidden_effect = {
-        event_target:global_event_country = { 
-            change_variable = { which = dcs_custom_crisis_multiplier value = 0.1 } 
-        }
-        every_country = {
-            country_event = {
-                id = dcs.101
-            }
-        }
-        country_event = { id = dcs.400 }
+#marauders
+country_event = {
+    id = dcs.502
+    hide_window = yes
+    mean_time_to_happen = { days = 1 }
+    fire_only_once = yes
+    trigger = {
+        is_country_type = awakened_marauders
+        has_global_flag = marauder_crisis_ongoing
+        has_dcs_affect_mid_game_crisis = yes
+        NOT = { has_global_flag = dcs_marauders_buffed }
+    }
+
+    immediate = {
+        set_global_flag = dcs_marauders_buffed
+        set_variable = { which = dcs_crisis_fleet_power_input value = 50000 }
+        country_event = { id = dcs.100 }
+        country_event = { id = dcs.101 }
     }
 }
 
-    option = {
-        trigger = { event_target:global_event_country = { has_country_flag = dcs_custom_crisis_multiplier_flag } }
-        name = dcs_menu.decrease_custom_modifier_1
-        hidden_effect = {
-            event_target:global_event_country = { 
-                subtract_variable = { which = dcs_custom_crisis_multiplier value = 1 } 
-            }
-            every_country = {
-                country_event = {
-                    id = dcs.101
-                }
-            }
-            country_event = { id = dcs.400 }
-        }
+#gray goo
+country_event = {
+    id = dcs.503
+    hide_window = yes
+    mean_time_to_happen = { days = 1 }
+    fire_only_once = yes
+    trigger = {
+        is_country_type = gray_goo
+        has_global_flag = gray_goo_crisis_active
+        has_dcs_affect_mid_game_crisis = yes
+        NOT = { has_global_flag = dcs_gray_goo_buffed }
     }
 
-    option = {
-        trigger = { event_target:global_event_country = { has_country_flag = dcs_custom_crisis_multiplier_flag } }
-        name = dcs_menu.decrease_custom_modifier_1
-        hidden_effect = {
-            event_target:global_event_country = { 
-                subtract_variable = { which = dcs_custom_crisis_multiplier value = 1 } 
-            }
-            every_country = {
-                country_event = {
-                    id = dcs.101
-                }
-            }
-            country_event = { id = dcs.400 }
-        }
-    }
+    immediate = {
 
-    option = {
-        trigger = { event_target:global_event_country = { has_country_flag = dcs_custom_crisis_multiplier_flag } }
-        name = dcs_menu.decrease_custom_modifier_5
-        hidden_effect = {
-            event_target:global_event_country = { 
-                subtract_variable = { which = dcs_custom_crisis_multiplier value = 5 } 
-            }
-            every_country = {
-                country_event = {
-                    id = dcs.101
-                }
-            }
-            country_event = { id = dcs.400 }
-        }
-    }
-
-    option = {
-        name = dcs_menu.close
-        default_hide_option = yes
+        set_global_flag = dcs_gray_goo_buffed
+        set_variable = { which = dcs_crisis_fleet_power_input value = 75000 }
+        country_event = { id = dcs.100 }
+        country_event = { id = dcs.101 }
     }
 }

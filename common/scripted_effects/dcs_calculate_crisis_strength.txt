@@ -1,4 +1,13 @@
+# Inputs:
+# dcs_crisis_fleet_power_input = value used in crisis calculation. Lower means higher result. It's supposed to represent a crisises fleet power.
+#                                Default is 180,000 for endgame crisis and 50,000 for midgame crisis.
 dcs_calculate_crisis_strength = {
+    if = {
+        limit = { not = { is_variable_set = dcs_crisis_fleet_power_input } }
+        set_variable = { which = dcs_crisis_fleet_power_input value = 180000 }
+    }
+
+    # find 5 strongest empires
     set_variable = { which = max_strength_1 value = -1 }
     set_variable = { which = max_strength_2 value = -1 }
     set_variable = { which = max_strength_3 value = -1 }
@@ -35,60 +44,131 @@ dcs_calculate_crisis_strength = {
         }
         clear_variable = strength
     }
+
     event_target:strongest_empire_1 = { log = "Strongest Empire: \\[This.GetName] with Fleet Power: \\[prev.max_strength_1]" }
     event_target:strongest_empire_2 = { log = "2nd Strongest Empire: \\[This.GetName] with Fleet Power: \\[prev.max_strength_2]" }
     event_target:strongest_empire_3 = { log = "3rd Strongest Empire: \\[This.GetName] with Fleet Power: \\[prev.max_strength_3]" }
     event_target:strongest_empire_4 = { log = "4th Strongest Empire: \\[This.GetName] with Fleet Power: \\[prev.max_strength_4]" }
     event_target:strongest_empire_5 = { log = "5th Strongest Empire: \\[This.GetName] with Fleet Power: \\[prev.max_strength_5]" }
 
-	multiply_variable = { which = max_strength_1 value = 2 }
-    multiply_variable = { which = max_strength_2 value = 1 }
-    multiply_variable = { which = max_strength_3 value = 0.5 }
-    multiply_variable = { which = max_strength_4 value = 0.3 }
+	multiply_variable = { which = max_strength_1 value = 1 }
+    multiply_variable = { which = max_strength_2 value = 0.8 }
+    multiply_variable = { which = max_strength_3 value = 0.6 }
+    multiply_variable = { which = max_strength_4 value = 0.4 }
     multiply_variable = { which = max_strength_5 value = 0.2 }
 
-    event_target:strongest_empire_2 = { log = "2nd Strongest Empire: \\[This.GetName] with Divided Power: \\[prev.max_strength_2]" }
-    event_target:strongest_empire_3 = { log = "3rd Strongest Empire: \\[This.GetName] with Divided Power: \\[prev.max_strength_3]" }
-    event_target:strongest_empire_4 = { log = "4th Strongest Empire: \\[This.GetName] with Divided Power: \\[prev.max_strength_4]" }
-    event_target:strongest_empire_5 = { log = "5th Strongest Empire: \\[This.GetName] with Divided Power: \\[prev.max_strength_5]" }
-
-    set_variable = {
-        which = dcs_universe_strength
-        value = 0
-    }
+    set_variable = { which = dcs_universe_strength value = 0 }
     change_variable = { which = dcs_universe_strength value = max_strength_1 }
     change_variable = { which = dcs_universe_strength value = max_strength_2 }
     change_variable = { which = dcs_universe_strength value = max_strength_3 }
     change_variable = { which = dcs_universe_strength value = max_strength_4 }
     change_variable = { which = dcs_universe_strength value = max_strength_5 }
 
-    clear_variable = max_strength_1
-    clear_variable = max_strength_2
-    clear_variable = max_strength_3
-    clear_variable = max_strength_4
-    clear_variable = max_strength_5
+    divide_variable = { which = dcs_universe_strength value = 3 }
+    log = "Weighted Average Universe Strength: \\[this.dcs_universe_strength]"
 
-    divide_variable = { which = dcs_universe_strength value = 4 }
+
+    # find 5 strongest player empires
+    set_variable = { which = player_max_strength_1 value = -1 }
+    set_variable = { which = player_max_strength_2 value = -1 }
+    set_variable = { which = player_max_strength_3 value = -1 }
+    set_variable = { which = player_max_strength_4 value = -1 }
+    set_variable = { which = player_max_strength_5 value = -1 }
+
+    every_playable_country = {
+        limit = { is_ai = no }
+        export_trigger_value_to_variable = {
+            trigger = fleet_power
+            variable = strength
+        }
+        #log = "Empire: \\[This.GetName]"
+        #log = "Fleet Strength: \\[This.strength]"
+        if = {
+            limit = { check_variable = { which = strength value > prev.player_max_strength_1 } }
+            prev = { set_variable = { which = player_max_strength_1 value = prev.strength } }
+            save_event_target_as = strongest_player_1
+        } else_if = {
+            limit = { check_variable = { which = strength value > prev.player_max_strength_2 } }
+            prev = { set_variable = { which = player_max_strength_2 value = prev.strength } }
+            save_event_target_as = strongest_player_2
+        } else_if = {
+            limit = { check_variable = { which = strength value > prev.player_max_strength_3 } }
+            prev = { set_variable = { which = player_max_strength_3 value = prev.strength } }
+            save_event_target_as = strongest_player_3
+        } else_if = {
+            limit = { check_variable = { which = strength value > prev.player_max_strength_4 } }
+            prev = { set_variable = { which = player_max_strength_4 value = prev.strength } }
+            save_event_target_as = strongest_player_4
+        } else_if = {
+            limit = { check_variable = { which = strength value > prev.player_max_strength_5 } }
+            prev = { set_variable = { which = player_max_strength_5 value = prev.strength } }
+            save_event_target_as = strongest_player_5
+        }
+        clear_variable = strength
+    }
+    set_variable = { which = player_divisor value = 1 }
+    if = { limit = { check_variable = { which = player_max_strength_1 value > -1 } }
+        event_target:strongest_player_1 = { log = "Strongest Player: \\[This.GetName] with Fleet Power: \\[prev.player_max_strength_1]" }
+    }
+    if = { limit = { check_variable = { which = player_max_strength_2 value > -1 } } 
+        change_variable = { which = player_divisor value = 0.8 }     
+        event_target:strongest_player_2 = { log = "2. Strongest Player: \\[This.GetName] with Fleet Power: \\[prev.player_max_strength_2]" }
+    }
+    if = { limit = { check_variable = { which = player_max_strength_3 value > -1 } } 
+        change_variable = { which = player_divisor value = 0.6 }     
+        event_target:strongest_player_3 = { log = "3. Strongest Player: \\[This.GetName] with Fleet Power: \\[prev.player_max_strength_3]" }
+    }
+    if = { limit = { check_variable = { which = player_max_strength_4 value > -1 } } 
+        change_variable = { which = player_divisor value = 0.4 }     
+        event_target:strongest_player_4 = { log = "4. Strongest Player: \\[This.GetName] with Fleet Power: \\[prev.player_max_strength_4]" }
+    }
+
+    if = { limit = { check_variable = { which = player_max_strength_5 value > -1 } } 
+        change_variable = { which = player_divisor value = 0.2 }     
+        event_target:strongest_player_5 = { log = "5. Strongest Player: \\[This.GetName] with Fleet Power: \\[prev.player_max_strength_5]" }
+    }
+
+    multiply_variable = { which = player_max_strength_1 value = 1 }
+    multiply_variable = { which = player_max_strength_2 value = 0.8 }
+    multiply_variable = { which = player_max_strength_3 value = 0.6 }
+    multiply_variable = { which = player_max_strength_4 value = 0.4 }
+    multiply_variable = { which = player_max_strength_5 value = 0.2 }
+
+    change_variable = { which = dcs_player_strength value = player_max_strength_1 }
+    change_variable = { which = dcs_player_strength value = player_max_strength_2 }
+    change_variable = { which = dcs_player_strength value = player_max_strength_3 }
+    change_variable = { which = dcs_player_strength value = player_max_strength_4 }
+    change_variable = { which = dcs_player_strength value = player_max_strength_5 }
+
+    divide_variable = { which = dcs_player_strength value = player_divisor }
+    log = "Weighted Average Player Strength: \\[this.dcs_player_strength]"
+
+    change_variable = { which = dcs_universe_strength value = dcs_player_strength }
+    divide_variable = { which = dcs_universe_strength value = 2 }
     round_variable = dcs_universe_strength
+    log = "Adjusted Universe Strength with Player Strength: \\[this.dcs_universe_strength]"
 
-    log = "Universe Strength: \\[this.dcs_universe_strength]"
-
+    #calculate player strength
     set_variable = {
         which = dcs_crisis_multiplier
         value = this.dcs_universe_strength
     }
 
-    divide_variable = { which = dcs_crisis_multiplier value = 180000 }
+    divide_variable = { which = dcs_crisis_multiplier value = dcs_crisis_fleet_power_input }
     log = "Crisis Multiplier: \\[this.dcs_crisis_multiplier]"
-    round_variable_to_closest = {
-        which = dcs_crisis_multiplier
-        value = 0.1
-    }
+    round_variable_to_closest = { which = dcs_crisis_multiplier value = 0.1 }
     log = "Crisis Multiplier: \\[this.dcs_crisis_multiplier]"
     if = {
         limit = { check_variable = { which = dcs_crisis_multiplier value < 0 } }
         set_variable = { which = dcs_crisis_multiplier value = 0 }
     }
+
+    clear_variable = max_strength_1
+    clear_variable = max_strength_2
+    clear_variable = max_strength_3
+    clear_variable = max_strength_4
+    clear_variable = max_strength_5
+    clear_variable = dcs_crisis_fleet_power_input
 }
 
 dcs_apply_crisis_strength = {
@@ -99,8 +179,7 @@ dcs_apply_crisis_strength = {
     }
     #prepare vanilla crisis strength negation or set to 0 if negation disabled
     if = {
-        #NOT because dcs_not_negate_crisis_strength has an inverted meaning (false means true)
-        limit = { event_target:global_event_country = { NOT = { has_country_flag = dcs_not_negate_crisis_strength } } }
+        limit = { event_target:global_event_country = { has_dcs_negate_crisis_strength = yes } }
         set_variable = { which = dcs_subtract_vanilla_crisis value = dcs_detected_vanilla_crisis }
     } else = {
         set_variable = { which = dcs_subtract_vanilla_crisis value = 0 }
@@ -120,20 +199,32 @@ dcs_apply_crisis_strength = {
         subtract_variable = { which = dcs_applied_multiplier value = dcs_subtract_vanilla_crisis }
         # add static offset
         change_variable = { which = dcs_applied_multiplier value = event_target:global_event_country.dcs_static_offset }
-        #ensure that applied multiplier is not negative. If the vanilla crisis setting is higher than the calculated,
-        # we end up with the vanilla crisis strength.
-        if = {
-            limit = { check_variable = { which = dcs_applied_multiplier value < 0 } }
-            set_variable = { which = dcs_applied_multiplier value = 0 }
-        }
         log = "Application of Calculated Crisis Strength"
     }
-
+    #ensure that applied multiplier is not negative. If the vanilla crisis setting is higher than the calculated,
+    # we end up with the vanilla crisis strength.
+    if = {
+        limit = { 
+            has_dcs_allow_negative_multiplier = no
+            check_variable = { which = dcs_applied_multiplier value < 0 } 
+        }
+        set_variable = { which = dcs_applied_multiplier value = 0 }
+    }
+    if= {
+        limit = { 
+            has_dcs_affect_mid_game_crisis = no 
+            is_midgame_crisis = yes
+        }
+        set_variable = { which = dcs_applied_multiplier value = 0 }
+    }
     #apply new modifier
     add_modifier = { modifier = dcs_crisis_strength_boost days = -1 mult = dcs_applied_multiplier }
     #set equivalent vanilla crisis strength for printing in event dialog
     set_variable = { which = dcs_equivalent_vanilla_crisis value = dcs_applied_multiplier }
     change_variable = { which = dcs_equivalent_vanilla_crisis value = dcs_detected_vanilla_crisis }
+    round_variable_to_closest = { which = dcs_equivalent_vanilla_crisis value = 0.1 }
+    round_variable_to_closest = { which = dcs_applied_multiplier value = 0.1 }
+    round_variable_to_closest = { which = dcs_subtract_vanilla_crisis value = 0.1 }
     log = "Applied Crisis Strength Multiplier: \\[this.dcs_applied_multiplier] to empire \\[this.GetName]"
 }
 

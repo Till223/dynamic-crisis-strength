@@ -1,5 +1,5 @@
 dcs_edict_menu = {
-	length = 0
+	length = 1
 	icon = "GFX_edict_type_policy"
 	potential = {
 		is_ai = no

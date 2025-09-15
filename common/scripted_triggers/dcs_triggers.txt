@@ -1,0 +1,30 @@
+is_midgame_crisis_active = {
+	OR = {
+		AND = {
+			has_global_flag = voidworms_plague_crisis_started
+			NOT = { has_global_flag = voidworms_plague_crisis_ended }
+		}
+		has_global_flag = marauder_crisis_ongoing
+		has_global_flag = gray_goo_crisis_active
+	}			
+}
+
+is_midgame_crisis = {
+	OR = {
+		is_country_type = voidworms_crisis
+		is_country_type = awakened_marauders
+		is_country_type = gray_goo
+	}
+}
+
+has_dcs_affect_mid_game_crisis = {
+	not = { has_global_flag = dcs_affect_mid_game_crisis }
+}
+
+has_dcs_allow_negative_multiplier = {
+	has_global_flag = dcs_allow_negative_multiplier
+}
+
+has_dcs_negate_crisis_strength = {
+	not = { has_global_flag = dcs_negate_crisis_strength }
+}
