@@ -18,13 +18,16 @@ is_midgame_crisis = {
 }
 
 has_dcs_affect_mid_game_crisis = {
-	not = { has_global_flag = dcs_affect_mid_game_crisis }
+	#default = disabled so NOT
+	NOT = { has_global_flag = dcs_affect_mid_game_crisis }
 }
 
 has_dcs_allow_negative_multiplier = {
-	has_global_flag = dcs_allow_negative_multiplier
+	#default = disabled so NOT
+	NOT = { has_global_flag = dcs_allow_negative_multiplier }
 }
 
 has_dcs_negate_crisis_strength = {
-	not = { has_global_flag = dcs_negate_crisis_strength }
+	#default = disabled so NOT
+	NOT = { has_global_flag = dcs_negate_crisis_strength }
 }
