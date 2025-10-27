@@ -28,6 +28,8 @@ country_event = {
             is_country_type = swarm           				# Prethoryn Scourge
             is_country_type = extradimensional              # Unbidden
             is_country_type = synth_queen_storm             # Cetana
+            is_country_type = awakened_synth_queen          # Cetana awakend
+            is_country_type = synth_queen                   # Cetana
             #has_country_flag = end_game_crisis
             AND = {
                 is_midgame_crisis = yes
@@ -49,7 +51,6 @@ country_event = {
             if = {
                 limit = { not = { is_variable_set = dcs_detected_vanilla_crisis } }
                 dcs_detect_vanilla_crisis_strength = yes
-                log = "crisis event triggered for \\[This.GetName]"
             }
             if = {
                 limit = { not = { is_variable_set = dcs_crisis_multiplier } }
@@ -89,6 +90,7 @@ country_event = {
             is_country_type = synth_queen                   # Cetana
             #has_country_flag = end_game_crisis              # Other modded crises
             AND = {
+                #todo: double check, could this have issues when there are two mid game crisis empires, one active one inactive?
                 is_midgame_crisis = yes
                 is_midgame_crisis_active = yes
             }
@@ -130,6 +132,12 @@ country_event = {
                     limit = { is_country_type = swarm }
                     prev = { dcs_copy_variables_from = { FROM = prev } }
                 }
+            } else = {
+                #this should rarely ever happen
+                #event 101 was called before 100 for some reason (maybe false global initialization flag)
+                #trigger event 100 to calculate crisis strength
+                log = "Event 101 triggered before event 100 for \\[This.GetName]."
+                country_event = { id = dcs.100}
             }
         }
         dcs_apply_crisis_strength = yes
