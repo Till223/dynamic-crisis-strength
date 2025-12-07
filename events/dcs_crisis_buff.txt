@@ -174,13 +174,13 @@ country_event = {
 
     immediate = {
         set_global_flag = dcs_voidworms_buffed
-        set_variable = { which = dcs_crisis_fleet_power_input value = 50000 }
+        set_variable = { which = dcs_crisis_fleet_power_input value = 60000 }
         country_event = { id = dcs.100 }
         country_event = { id = dcs.101 }
     }
 }
 
-#marauders
+#marauders (great kahn)
 country_event = {
     id = dcs.502
     hide_window = yes
@@ -195,7 +195,7 @@ country_event = {
 
     immediate = {
         set_global_flag = dcs_marauders_buffed
-        set_variable = { which = dcs_crisis_fleet_power_input value = 50000 }
+        set_variable = { which = dcs_crisis_fleet_power_input value = 60000 }
         country_event = { id = dcs.100 }
         country_event = { id = dcs.101 }
     }
@@ -217,7 +217,7 @@ country_event = {
     immediate = {
 
         set_global_flag = dcs_gray_goo_buffed
-        set_variable = { which = dcs_crisis_fleet_power_input value = 75000 }
+        set_variable = { which = dcs_crisis_fleet_power_input value = 90000 }
         country_event = { id = dcs.100 }
         country_event = { id = dcs.101 }
     }

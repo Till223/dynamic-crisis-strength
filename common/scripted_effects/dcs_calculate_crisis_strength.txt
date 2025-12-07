@@ -155,20 +155,30 @@ dcs_calculate_crisis_strength = {
     }
 
     divide_variable = { which = dcs_crisis_multiplier value = dcs_crisis_fleet_power_input }
-    log = "Crisis Multiplier: \\[this.dcs_crisis_multiplier]"
-    round_variable_to_closest = { which = dcs_crisis_multiplier value = 0.1 }
-    log = "Crisis Multiplier: \\[this.dcs_crisis_multiplier]"
+    log = "Raw Crisis Multiplier: \\[this.dcs_crisis_multiplier]"
+    
+    #adjust crisis multiplier
+    #behavior should be identical when above 1
+    #when below 1, it should be possible to reach negative values and actually debuff the crisis
     if = {
-        limit = { check_variable = { which = dcs_crisis_multiplier value < 0 } }
-        set_variable = { which = dcs_crisis_multiplier value = 0 }
+        limit = { check_variable = { which = dcs_crisis_multiplier value < 1}}
+        subtract_variable = { which = dcs_crisis_multiplier value = 1 }
+        multiply_variable = { which = dcs_crisis_multiplier value = 2 }
+        change_variable = { which = dcs_crisis_multiplier value = 1 }
+    }    
+    round_variable_to_closest = { which = dcs_crisis_multiplier value = 0.1 }
+    #ensure -0.9 as a minimum. A value of -1 could instantly kill all crisis ships.
+    if = {
+        limit = { check_variable = { which = dcs_crisis_multiplier value < -0.9 } }
+        set_variable = { which = dcs_crisis_multiplier value = -0.9 }
     }
+    log = "Adjusted and Rounded Crisis Multiplier: \\[this.dcs_crisis_multiplier]"
 
     clear_variable = max_strength_1
     clear_variable = max_strength_2
     clear_variable = max_strength_3
     clear_variable = max_strength_4
     clear_variable = max_strength_5
-    clear_variable = dcs_crisis_fleet_power_input
 }
 
 dcs_apply_crisis_strength = {
